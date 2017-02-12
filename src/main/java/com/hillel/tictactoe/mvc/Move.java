@@ -1,8 +1,8 @@
 package com.hillel.tictactoe.mvc;
 
 public class Move {
-  int rowCoordinate;
-  int columnCoordinate;
+  private int rowCoordinate;
+  private int columnCoordinate;
 
   public Move(int row, int column){
     rowCoordinate=row;

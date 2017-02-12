@@ -4,7 +4,7 @@ public class SmartAIPlayer extends AIPlayer {
   private int gameStep = 0;
 
   public SmartAIPlayer(Board board) {
-    setBoard(board);
+    super(board);
   }
 
   @Override
@@ -33,16 +33,19 @@ public class SmartAIPlayer extends AIPlayer {
     return move;
   }
 
+  @Override
+  public void reset() {
+    gameStep = 0;
+  }
+
   private Move smartStrategy() {
     Move move;
     move = firstMoveStrategy();
     if (move != null) {
-      gameStep++;
       return move;
     }
     move = secondMoveStrategy();
     if (move != null) {
-      gameStep++;
       return move;
     }
     return thirdMoveStrategy();
@@ -59,84 +62,100 @@ public class SmartAIPlayer extends AIPlayer {
             && board.getCellState(0, 2) == CellState.EMPTY) {
           if (board.getCellState(2, 0) == CellState.EMPTY) {
             return new Move(0, 2);
-          } else if (board.getCellState(2, 1) == CellState.EMPTY) {
-            return new Move(0, 1);
           } else {
-            return null;
+            if (board.getCellState(2, 1) == CellState.EMPTY) {
+              return new Move(0, 1);
+            } else {
+              return null;
+            }
           }
-        } else if (board.getCellState(1, 0) == CellState.EMPTY
-            && board.getCellState(2, 0) == CellState.EMPTY) {
-          if (board.getCellState(0, 2) == CellState.EMPTY) {
-            return new Move(2, 0);
-          } else if (board.getCellState(1, 2) == CellState.EMPTY) {
-            return new Move(1, 0);
-          } else {
-            return null;
+        } else {
+          if (board.getCellState(1, 0) == CellState.EMPTY
+              && board.getCellState(2, 0) == CellState.EMPTY) {
+            if (board.getCellState(0, 2) == CellState.EMPTY) {
+              return new Move(2, 0);
+            } else {
+              if (board.getCellState(1, 2) == CellState.EMPTY) {
+                return new Move(1, 0);
+              } else {
+                return null;
+              }
+            }
           }
         }
-      } else if (board.getCellState(0, 2) == CellState.X) {
+      }
+    } else {
+      if (board.getCellState(0, 2) == CellState.X) {
         if (board.getCellState(1, 2) == CellState.EMPTY
             && board.getCellState(2, 2) == CellState.EMPTY) {
           if (board.getCellState(0, 0) == CellState.EMPTY) {
             return new Move(2, 2);
-          } else if (board.getCellState(1, 0) == CellState.EMPTY) {
-            return new Move(1, 2);
           } else {
-            return null;
-          }
-        } else if (board.getCellState(0, 1) == CellState.EMPTY
-            && board.getCellState(0, 0) == CellState.EMPTY) {
-          if (board.getCellState(2, 2) == CellState.EMPTY) {
-            return new Move(0, 0);
-          } else if (board.getCellState(2, 1) == CellState.EMPTY) {
-            return new Move(0, 1);
-          } else {
-            return null;
-          }
-        }
-      } else if (board.getCellState(2, 2) == CellState.X) {
-        if (board.getCellState(2, 1) == CellState.EMPTY
-            && board.getCellState(2, 0) == CellState.EMPTY) {
-          if (board.getCellState(0, 2) == CellState.EMPTY) {
-            return new Move(2, 0);
-          } else if (board.getCellState(0, 1) == CellState.EMPTY) {
-            return new Move(2, 1);
-          } else {
-            return null;
-          }
-        } else if (board.getCellState(1, 2) == CellState.EMPTY
-            && board.getCellState(0, 2) == CellState.EMPTY) {
-          if (board.getCellState(2, 0) == CellState.EMPTY) {
-            return new Move(0, 2);
-          } else if (board.getCellState(1, 0) == CellState.EMPTY) {
-            return new Move(1, 2);
-          } else {
-            return null;
-          }
-        }
-      } else if (board.getCellState(2, 0) == CellState.X) {
-        if (board.getCellState(2, 1) == CellState.EMPTY
-            && board.getCellState(2, 0) == CellState.EMPTY) {
-          if (board.getCellState(2, 2) == CellState.EMPTY) {
-            return new Move(0, 0);
-          } else if (board.getCellState(0, 2) == CellState.EMPTY) {
-            return new Move(1, 0);
-          } else {
-            return null;
-          }
-        } else if (board.getCellState(2, 1) == CellState.EMPTY
-            && board.getCellState(2, 2) == CellState.EMPTY) {
-          if (board.getCellState(0, 0) == CellState.EMPTY) {
-            return new Move(2, 2);
-          } else if (board.getCellState(0, 1) == CellState.EMPTY) {
-            return new Move(2, 1);
-          } else {
-            return null;
+            if (board.getCellState(1, 0) == CellState.EMPTY) {
+              return new Move(1, 2);
+            } else {
+              return null;
+            }
           }
         } else {
-          return null;
+          if (board.getCellState(0, 1) == CellState.EMPTY
+              && board.getCellState(0, 0) == CellState.EMPTY) {
+            if (board.getCellState(2, 2) == CellState.EMPTY) {
+              return new Move(0, 0);
+            } else if (board.getCellState(2, 1) == CellState.EMPTY) {
+              return new Move(0, 1);
+            } else {
+              return null;
+            }
+          }
         }
-      }//примерно на этом уровне игры уже ясно, играют ли игроки вничью, или всё-таки кто-то выиграет
+      } else {
+        if (board.getCellState(2, 2) == CellState.X) {
+          if (board.getCellState(2, 1) == CellState.EMPTY
+              && board.getCellState(2, 0) == CellState.EMPTY) {
+            if (board.getCellState(0, 2) == CellState.EMPTY) {
+              return new Move(2, 0);
+            } else if (board.getCellState(0, 1) == CellState.EMPTY) {
+              return new Move(2, 1);
+            } else {
+              return null;
+            }
+          } else if (board.getCellState(1, 2) == CellState.EMPTY
+              && board.getCellState(0, 2) == CellState.EMPTY) {
+            if (board.getCellState(2, 0) == CellState.EMPTY) {
+              return new Move(0, 2);
+            } else if (board.getCellState(1, 0) == CellState.EMPTY) {
+              return new Move(1, 2);
+            } else {
+              return null;
+            }
+          }
+        } else {
+          if (board.getCellState(2, 0) == CellState.X) {
+            if (board.getCellState(2, 1) == CellState.EMPTY
+                && board.getCellState(2, 0) == CellState.EMPTY) {
+              if (board.getCellState(2, 2) == CellState.EMPTY) {
+                return new Move(0, 0);
+              } else if (board.getCellState(0, 2) == CellState.EMPTY) {
+                return new Move(1, 0);
+              } else {
+                return null;
+              }
+            } else if (board.getCellState(2, 1) == CellState.EMPTY
+                && board.getCellState(2, 2) == CellState.EMPTY) {
+              if (board.getCellState(0, 0) == CellState.EMPTY) {
+                return new Move(2, 2);
+              } else if (board.getCellState(0, 1) == CellState.EMPTY) {
+                return new Move(2, 1);
+              } else {
+                return null;
+              }
+            } else {
+              return null;
+            }
+          }//примерно на этом уровне игры уже ясно, играют ли игроки вничью, или всё-таки кто-то выиграет
+        }
+      }
     }
     return null;
   }
@@ -159,7 +178,9 @@ public class SmartAIPlayer extends AIPlayer {
             return new Move(0, 0);
           } else if (board.getCellState(2, 0) == CellState.X) {
             return new Move(0, 2);
-          } else return null;
+          } else {
+            return null;
+          }
         }
       }
     }
@@ -168,9 +189,9 @@ public class SmartAIPlayer extends AIPlayer {
     где находится его символ, в этой ситуации, главное не ходить в углы,
     чтобы не возникла беспроигрышная ситуация в пользу игрока*/
     else if (gameStep == 1 && getPlayerSymbol() == CellState.O) {
-      if ((board.getCellState(0, 0) == CellState.O && board.getCellState(2, 2) == CellState.O) ||
-          (board.getCellState(0, 2) == CellState.O && board.getCellState(2, 0)
-              == CellState.O)) {
+      if ((board.getCellState(0, 0) == CellState.X && board.getCellState(2, 2) == CellState.X) ||
+          (board.getCellState(0, 2) == CellState.X && board.getCellState(2, 0)
+              == CellState.X)) {
         return choosingSideCenter();
       }
     }

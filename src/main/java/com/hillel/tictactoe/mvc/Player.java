@@ -6,4 +6,5 @@ public interface Player {
   void setPlayerSymbol(CellState state);
   String getName();
   boolean needUserMove();
+  void reset();
 }

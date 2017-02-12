@@ -13,6 +13,10 @@ public class HumanPlayer implements Player {
     return true;
   }
 
+  @Override
+  public void reset() {
+  }
+
   public Move makeMove() {
     return userMove.getMove();
   }

@@ -3,14 +3,14 @@ package com.hillel.tictactoe.mvc;
 import java.util.Random;
 
 abstract public class AIPlayer implements Player {
-  Board board;
+  protected Board board;
   private CellState symbol;
-  String name = "AI";
-  Random rand = new Random();
+  private String name = "AI";
+  protected Random rand = new Random();
 
-  public void setBoard(Board board) {
-    this.board = board;
-  }
+  public AIPlayer(Board board) {
+  this.board=board;
+}
 
   public Board getBoard(){
     return board;

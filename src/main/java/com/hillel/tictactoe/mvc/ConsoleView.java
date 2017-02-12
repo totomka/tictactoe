@@ -4,21 +4,16 @@ import java.util.Scanner;
 
 public class ConsoleView implements View, GameObserver {
   private Controller controller;
-  private Game game;
+  private GameState gameState;
   private Board board;
 
-  public ConsoleView(Controller controller, Game game, Board board) {
+  public ConsoleView(Controller controller, GameState gameState, Board board) {
     this.controller = controller;
-    this.game = game;
+    this.gameState = gameState;
     this.board = board;
   }
 
-  public void clearScreen() {
-
-  }
-
   private void printCells() {
-    clearScreen();
     System.out.println(".____.____.____.");
     for (int i = 0; i < board.getRows(); i++) {
       for (int j = 0; j < board.getColumns(); j++) {
@@ -46,43 +41,51 @@ public class ConsoleView implements View, GameObserver {
   }
 
   public void run() {
-    updateBoard();
+    System.out.println("Game started");
+    controller.startGame();
     String symbol = null;
     while (true) {
-      if(game.needUserMove()){
+      if (!gameState.isEndGame()) {
+        System.out.println(gameState.getCurrentPlayerName() + " is moving: (q -> quit)");
         symbol = readInput();
         if (symbol.equals("q")) {
           return;
         } else {
           Move move = decodeMove(symbol);
-          controller.processUserMove(move);
+          if (move != null) {
+            controller.processUserMove(move);
+          }
+        }
+      } else {
+        System.out.println("Would you like to play again?\nr -> restart\nany other key - quit");
+        symbol = readInput();
+        if (symbol.equals("r")) {
+          System.out.println("Game started");
+          controller.startGame();
+        } else {
+          return;
         }
       }
-      else{
-        game.updateGameState();//нельзя во вью изменять модель
-      }
-
     }
   }
 
   @Override
   public void updateBoard() {
     printCells();
-    System.out.println(game.getCurrentPlayerName() + " is making turn (q -> quit): ");
-    if (game.isEndGame()) {
+    if (gameState.isEndGame()) {
       System.out.print("The game is over.");
       if (!board.isFull()) {
-        System.out.println("The winner is " + game.showWinner());
+        System.out.println("The winner is " + gameState.showWinner());
       } else {
         System.out.println("Friendship has won. There are no empty cells anymore");
       }
-      /*System.out.println("Would you like to play again?\nr -> restart\nany other key - quit");
-      String symbol = readInput();
-      if (symbol.equals("r")) {
-        game.start();
-      } else {
-        return;
-      }*/
+    }
+  }
+
+  @Override
+  public void updateTurn() {
+    if (!gameState.isEndGame()) {
+      System.out.println(gameState.getCurrentPlayerName() + " move (" + gameState.getCurrentPlayerSymbol() + ")");
     }
   }
 
@@ -118,6 +121,9 @@ public class ConsoleView implements View, GameObserver {
         break;
       default:
         System.out.println("Wrong symbol");
+    }
+    if (!gameState.isLegalMove(move)) {
+      move = null;
     }
     return move;
   }

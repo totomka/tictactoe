@@ -2,7 +2,7 @@ package com.hillel.tictactoe.mvc;
 
 import java.util.Random;
 
-public class Game {
+public class Game implements GameState {
   private Player playerFirst;
   private Player playerSecond;
   private Player currentPlayer;
@@ -13,7 +13,6 @@ public class Game {
     this.playerFirst = playerFirst;
     this.playerSecond = playerSecond;
     this.board = board;
-    start();
   }
 
   void registerObserver(GameObserver observer) {
@@ -35,18 +34,31 @@ public class Game {
 
   public void start() {
     board.reset();
+    playerFirst.reset();
+    playerSecond.reset();
     whoPlaysFirst();
+    observer.updateBoard();
+    observer.updateTurn();
+    while (!needUserMove()) {
+      Move move = currentPlayer.makeMove();
+      board.markCell(move.getRowCoordinate(), move.getColumnCoordinate(), currentPlayer.getPlayerSymbol());
+      observer.updateBoard();
+      changePlayer();
+      observer.updateTurn();
+    }
   }
 
+  @Override
   public boolean isEndGame() {
     return board.isEndGame(currentPlayer.getPlayerSymbol());
   }
 
+  @Override
   public String showWinner() {
     return currentPlayer.getName();
   }
 
-  public boolean needUserMove() {
+  private boolean needUserMove() {
     return currentPlayer.needUserMove();
   }
 
@@ -54,14 +66,14 @@ public class Game {
     do {
       Move move = currentPlayer.makeMove();
       board.markCell(move.getRowCoordinate(), move.getColumnCoordinate(), currentPlayer.getPlayerSymbol());
-      playerMadeMove();
+      observer.updateBoard();
+      if (isEndGame()) {
+        break;
+      }
       changePlayer();
+      observer.updateTurn();
     }
     while (!needUserMove());
-  }
-
-  public void playerMadeMove() {
-    observer.updateBoard();
   }
 
   private void changePlayer() {
@@ -72,7 +84,18 @@ public class Game {
     }
   }
 
+  @Override
+  public CellState getCurrentPlayerSymbol() {
+    return currentPlayer.getPlayerSymbol();
+  }
+
+  @Override
   public String getCurrentPlayerName() {
     return currentPlayer.getName();
+  }
+
+  @Override
+  public boolean isLegalMove(Move move) {
+    return board.getCellState(move.getRowCoordinate(), move.getColumnCoordinate()) == CellState.EMPTY;
   }
 }

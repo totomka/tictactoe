@@ -1,5 +1,6 @@
 package com.hillel.tictactoe.mvc;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class ConsoleView implements View, GameObserver {
@@ -73,7 +74,7 @@ public class ConsoleView implements View, GameObserver {
   public void updateBoard() {
     printCells();
     if (gameState.isEndGame()) {
-      System.out.print("The game is over.");
+      System.out.print("The game is over. ");
       if (!board.isFull()) {
         System.out.println("The winner is " + gameState.showWinner());
       } else {
@@ -122,15 +123,14 @@ public class ConsoleView implements View, GameObserver {
       default:
         System.out.println("Wrong symbol");
     }
-    if (!gameState.isLegalMove(move)) {
+    if (move == null || !gameState.isLegalMove(move)) {
       move = null;
     }
     return move;
   }
 
   private String readInput() {
-    Scanner sc = new Scanner(System.in);
+    Scanner sc = new Scanner(System.in, StandardCharsets.UTF_8.toString());
     return sc.nextLine();
   }
-
 }

@@ -5,7 +5,8 @@ public class TicTacToe {
     UserMove userMove = new UserMove();
     Player human = new HumanPlayer(userMove);
     Board board = new TicTacToeBoard();
-    AIPlayer AI = new SmartAIPlayer(board);
+    AIRandom random = new AIPlayerRandom();
+    AIPlayer AI = new SmartAIPlayer(board, random);
     Game game = new Game(board, human, AI);
     Controller controller = new GameController(game, userMove);
     View view = new ConsoleView(controller, game, board);

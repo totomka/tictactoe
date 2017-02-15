@@ -1,26 +1,25 @@
 package com.hillel.tictactoe.mvc;
 
-import java.util.Random;
-
 abstract public class AIPlayer implements Player {
   protected Board board;
   private CellState symbol;
   private String name = "AI";
-  protected Random rand = new Random();
+  AIRandom rand;
 
-  public AIPlayer(Board board) {
-  this.board=board;
-}
+  public AIPlayer(Board board, AIRandom random) {
+    this.board = board;
+    rand = random;
+  }
 
-  public Board getBoard(){
+  public Board getBoard() {
     return board;
   }
 
-  public Move makeEasyMove(){
+  public Move makeEasyMove() {
     int i, j;
     do {
-      i = rand.nextInt(board.getRows());
-      j = rand.nextInt(board.getColumns());
+      i = rand.getRandomData(board.getRows());
+      j = rand.getRandomData(board.getColumns());
     } while (board.getCellState(i, j) != CellState.EMPTY);
     return new Move(i, j);
   }

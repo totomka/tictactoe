@@ -13,8 +13,6 @@ public interface Board {
 
   int getColumns();
 
-  boolean containsEmptyCells();
-
   boolean isFull();
 }
 

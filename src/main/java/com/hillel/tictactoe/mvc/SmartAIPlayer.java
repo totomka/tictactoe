@@ -3,32 +3,38 @@ package com.hillel.tictactoe.mvc;
 public class SmartAIPlayer extends AIPlayer {
   private int gameStep = 0;
 
-  public SmartAIPlayer(Board board) {
-    super(board);
+  public SmartAIPlayer(Board board, AIRandom random) {
+    super(board, random);
+  }
+
+  private CellState getOpponentSymbol() {
+    if (getPlayerSymbol() == CellState.X) {
+      return CellState.O;
+    } else {
+      return CellState.X;
+    }
   }
 
   @Override
   public Move makeMove() {
-    Move move = completeLine(getPlayerSymbol());
+    Move move = findMoveCompletingLine(getPlayerSymbol());
     if (move != null) {
-      gameStep++;
-      return move;
+      return chooseMove(move);
     }
-    if (getPlayerSymbol() == CellState.X) {
-      move = completeLine(CellState.O);
-    } else {
-      move = completeLine(CellState.X);
-    }
+    //don't let the opponent win
+    move = findMoveCompletingLine(getOpponentSymbol());
     if (move != null) {
-      gameStep++;
-      return move;
+      return chooseMove(move);
     }
-    move = smartStrategy();
+    move = makeSmartMove();
     if (move != null) {
-      gameStep++;
-      return move;
+      return chooseMove(move);
     }
     move = makeEasyMove();
+    return chooseMove(move);
+  }
+
+  private Move chooseMove(Move move) {
     gameStep++;
     return move;
   }
@@ -38,169 +44,152 @@ public class SmartAIPlayer extends AIPlayer {
     gameStep = 0;
   }
 
-  private Move smartStrategy() {
-    Move move;
-    move = firstMoveStrategy();
-    if (move != null) {
-      return move;
+  private Move makeSmartMove() {
+    switch (gameStep) {
+      case 0:
+        return firstMoveStrategy();
+      case 1:
+        return secondMoveStrategy();
+      case 2:
+        return thirdMoveStrategy();
     }
-    move = secondMoveStrategy();
-    if (move != null) {
-      return move;
-    }
-    return thirdMoveStrategy();
+    return null;
   }
 
-  private Move thirdMoveStrategy() {
-    /*на пятом шаге игры важно компьютеру походить в смежных угол от угла (нужно проверить возможность походить в оба
-     смежных угла, в котором уже находится его символ так, чтобы между ними было пустое поле и чтобы было пустое поле
-      по диагонали от угла, в котором он будет ставить символ либо можно поставить рядом с символом в пустое поле,
-      если по другую сторону от центра также пустое поле*/
-    if (gameStep == 2 && getPlayerSymbol() == CellState.X) {
-      if (board.getCellState(0, 0) == CellState.X) {
-        if (board.getCellState(0, 1) == CellState.EMPTY
-            && board.getCellState(0, 2) == CellState.EMPTY) {
-          if (board.getCellState(2, 0) == CellState.EMPTY) {
-            return new Move(0, 2);
-          } else {
-            if (board.getCellState(2, 1) == CellState.EMPTY) {
-              return new Move(0, 1);
-            } else {
-              return null;
-            }
-          }
+  private Move xforkStrategy() {
+    if (board.getCellState(0, 0) == CellState.X) {
+      if (isEmptyCell(0, 1) && isEmptyCell(0, 2)) {
+        if (isEmptyCell(2, 0)) {
+          return new Move(0, 2);
+        }
+        if (isEmptyCell(2, 1)) {
+          return new Move(0, 1);
+        }
+      }
+    } else {
+      if (isEmptyCell(1, 0) && isEmptyCell(2, 0)) {
+        if (isEmptyCell(0, 2)) {
+          return new Move(2, 0);
+        }
+        if (isEmptyCell(1, 2)) {
+          return new Move(1, 0);
+        }
+      }
+    }
+    return null;
+  }
+
+  private Move oforkStrategy() {
+    if (board.getCellState(0, 2) == CellState.X) {
+      if (isEmptyCell(1, 2) && isEmptyCell(2, 2)) {
+        if (isEmptyCell(0, 0)) {
+          return new Move(2, 2);
         } else {
-          if (board.getCellState(1, 0) == CellState.EMPTY
-              && board.getCellState(2, 0) == CellState.EMPTY) {
-            if (board.getCellState(0, 2) == CellState.EMPTY) {
-              return new Move(2, 0);
-            } else {
-              if (board.getCellState(1, 2) == CellState.EMPTY) {
-                return new Move(1, 0);
-              } else {
-                return null;
-              }
-            }
+          if (isEmptyCell(1, 0)) {
+            return new Move(1, 2);
+          }
+        }
+      } else {
+        if (isEmptyCell(0, 1) && isEmptyCell(0, 0)) {
+          if (isEmptyCell(2, 2)) {
+            return new Move(0, 0);
+          } else if (isEmptyCell(2, 1)) {
+            return new Move(0, 1);
           }
         }
       }
     } else {
-      if (board.getCellState(0, 2) == CellState.X) {
-        if (board.getCellState(1, 2) == CellState.EMPTY
-            && board.getCellState(2, 2) == CellState.EMPTY) {
-          if (board.getCellState(0, 0) == CellState.EMPTY) {
-            return new Move(2, 2);
-          } else {
-            if (board.getCellState(1, 0) == CellState.EMPTY) {
-              return new Move(1, 2);
-            } else {
-              return null;
-            }
+      if (board.getCellState(2, 2) == CellState.X) {
+        if (isEmptyCell(2, 1) && isEmptyCell(2, 0)) {
+          if (isEmptyCell(0, 2)) {
+            return new Move(2, 0);
+          } else if (isEmptyCell(0, 1)) {
+            return new Move(2, 1);
           }
-        } else {
-          if (board.getCellState(0, 1) == CellState.EMPTY
-              && board.getCellState(0, 0) == CellState.EMPTY) {
-            if (board.getCellState(2, 2) == CellState.EMPTY) {
-              return new Move(0, 0);
-            } else if (board.getCellState(2, 1) == CellState.EMPTY) {
-              return new Move(0, 1);
-            } else {
-              return null;
-            }
+        } else if (isEmptyCell(1, 2) && isEmptyCell(0, 2)) {
+          if (isEmptyCell(2, 0)) {
+            return new Move(0, 2);
+          } else if (isEmptyCell(1, 0)) {
+            return new Move(1, 2);
           }
         }
       } else {
-        if (board.getCellState(2, 2) == CellState.X) {
-          if (board.getCellState(2, 1) == CellState.EMPTY
-              && board.getCellState(2, 0) == CellState.EMPTY) {
-            if (board.getCellState(0, 2) == CellState.EMPTY) {
-              return new Move(2, 0);
-            } else if (board.getCellState(0, 1) == CellState.EMPTY) {
-              return new Move(2, 1);
-            } else {
-              return null;
+        if (board.getCellState(2, 0) == CellState.X) {
+          if (isEmptyCell(2, 1) && isEmptyCell(2, 0)) {
+            if (isEmptyCell(2, 2)) {
+              return new Move(0, 0);
+            } else if (isEmptyCell(0, 2)) {
+              return new Move(1, 0);
             }
-          } else if (board.getCellState(1, 2) == CellState.EMPTY
-              && board.getCellState(0, 2) == CellState.EMPTY) {
-            if (board.getCellState(2, 0) == CellState.EMPTY) {
-              return new Move(0, 2);
-            } else if (board.getCellState(1, 0) == CellState.EMPTY) {
-              return new Move(1, 2);
-            } else {
-              return null;
+          } else if (isEmptyCell(2, 1) && isEmptyCell(2, 2)) {
+            if (isEmptyCell(0, 0)) {
+              return new Move(2, 2);
+            }
+            if (isEmptyCell(0, 1)) {
+              return new Move(2, 1);
             }
           }
-        } else {
-          if (board.getCellState(2, 0) == CellState.X) {
-            if (board.getCellState(2, 1) == CellState.EMPTY
-                && board.getCellState(2, 0) == CellState.EMPTY) {
-              if (board.getCellState(2, 2) == CellState.EMPTY) {
-                return new Move(0, 0);
-              } else if (board.getCellState(0, 2) == CellState.EMPTY) {
-                return new Move(1, 0);
-              } else {
-                return null;
-              }
-            } else if (board.getCellState(2, 1) == CellState.EMPTY
-                && board.getCellState(2, 2) == CellState.EMPTY) {
-              if (board.getCellState(0, 0) == CellState.EMPTY) {
-                return new Move(2, 2);
-              } else if (board.getCellState(0, 1) == CellState.EMPTY) {
-                return new Move(2, 1);
-              } else {
-                return null;
-              }
-            } else {
-              return null;
-            }
-          }//примерно на этом уровне игры уже ясно, играют ли игроки вничью, или всё-таки кто-то выиграет
         }
       }
     }
     return null;
+  }
+
+  private Move thirdMoveStrategy() {
+    //trying to make a fork
+    if (getPlayerSymbol() == CellState.X) {
+      return xforkStrategy();
+    }
+    return oforkStrategy();
   }
 
   private Move secondMoveStrategy() {
-    if (gameStep == 1 && getPlayerSymbol() == CellState.X) {
-      if (board.getCellState(1, 1) == CellState.X) {
-        return choosingCorner();
+    if (getPlayerSymbol() == CellState.X) {
+      //if we have occupied the center, we should occupy some corner
+      if (getCenterState() == CellState.X) {
+        return chooseCorner();
       } else {
-        if (board.getCellState(1, 1) == CellState.EMPTY) {
-          return new Move(1, 1);
+        if (getCenterState() == CellState.EMPTY) {
+          return chooseCenter();
         } else {
-          //если центр занят, то тогда нам нужно ходить в противоположный угол по диогонали от того угла,
-          // который уже занят символом компьютера
-          if (board.getCellState(0, 0) == CellState.X) {
-            return new Move(2, 2);
-          } else if (board.getCellState(0, 2) == CellState.X) {
-            return new Move(2, 0);
-          } else if (board.getCellState(2, 2) == CellState.X) {
-            return new Move(0, 0);
-          } else if (board.getCellState(2, 0) == CellState.X) {
-            return new Move(0, 2);
-          } else {
-            return null;
-          }
+          //if the center is already occupied by the opponent, we should make move to the corner opposite to
+          //the corner we've already occupied previously
+          return occupyXDiagonalCorners();
         }
       }
     }
-    /*на четвёртом шаге игры может сложиться опасная ситуация, когда игрок начал с хода в угол,
-    при этом компьютер походит в центр, тогда опытный игрок походит по диагонали от угла,
-    где находится его символ, в этой ситуации, главное не ходить в углы,
-    чтобы не возникла беспроигрышная ситуация в пользу игрока*/
-    else if (gameStep == 1 && getPlayerSymbol() == CellState.O) {
-      if ((board.getCellState(0, 0) == CellState.X && board.getCellState(2, 2) == CellState.X) ||
-          (board.getCellState(0, 2) == CellState.X && board.getCellState(2, 0)
-              == CellState.X)) {
-        return choosingSideCenter();
-      }
+    //if center is occupied by AI but diagonal corners belong to the opponent, we need to choose some side center
+    if (diagonalCornersAreOccupiedByX()) {
+      return chooseSideCenter();
     }
     return null;
   }
 
-  Move choosingSideCenter() {
-    int center_number = rand.nextInt(4) + 1;
-    switch (center_number) {
+  private boolean diagonalCornersAreOccupiedByX() {
+    return (board.getCellState(0, 0) == CellState.X && board.getCellState(2, 2) == CellState.X) ||
+        (board.getCellState(0, 2) == CellState.X && board.getCellState(2, 0)
+            == CellState.X);
+  }
+
+  private Move occupyXDiagonalCorners() {
+    if (board.getCellState(0, 0) == CellState.X) {
+      return new Move(2, 2);
+    }
+    if (board.getCellState(0, 2) == CellState.X) {
+      return new Move(2, 0);
+    }
+    if (board.getCellState(2, 2) == CellState.X) {
+      return new Move(0, 0);
+    }
+    if (board.getCellState(2, 0) == CellState.X) {
+      return new Move(0, 2);
+    }
+    return null;
+  }
+
+  Move chooseSideCenter() {
+    int sideNumber = rand.getRandomData(4) + 1;
+    switch (sideNumber) {
       case 1:
         return new Move(0, 1);
       case 2:
@@ -213,25 +202,31 @@ public class SmartAIPlayer extends AIPlayer {
   }
 
   private Move firstMoveStrategy() {
-    int choice = rand.nextInt(2);
-    if (gameStep == 0 && getPlayerSymbol() == CellState.X) {
-      if (choice == 0) {
-        return choosingCorner();
+    //occupy the center or one of the corners
+    if (getPlayerSymbol() == CellState.X) {
+      if (rand.getRandomData(2) == 0) {
+        return chooseCorner();
       } else {
-        return new Move(1, 1);
-      }
-    } else if (gameStep == 0 && getPlayerSymbol() == CellState.O) {
-      if (board.getCellState(1, 1) == CellState.EMPTY) {
-        return new Move(1, 1);
-      } else {
-        return choosingCorner();
+        return chooseCenter();
       }
     }
-    return null;
+    if (getCenterState() == CellState.EMPTY) {
+      return chooseCenter();
+    } else {
+      return chooseCorner();
+    }
   }
 
-  private Move choosingCorner() {
-    int cornerNumber = rand.nextInt(4) + 1;
+  private CellState getCenterState() {
+    return board.getCellState(1, 1);
+  }
+
+  private Move chooseCenter() {
+    return new Move(1, 1);
+  }
+
+  private Move chooseCorner() {
+    int cornerNumber = rand.getRandomData(4) + 1;
     switch (cornerNumber) {
       case 1:
         return new Move(0, 0);
@@ -244,127 +239,137 @@ public class SmartAIPlayer extends AIPlayer {
     }
   }
 
-
-  private Move completeLine(CellState symbol) {
-    Board board = getBoard();
+  private Move findMoveCompletingLine(CellState symbol) {
     int rows = board.getRows();
     int cols = board.getColumns();
     for (int i = 0; i < rows; i++)
       for (int j = 0; j < cols; j++) {
         if (board.getCellState(i, j) == symbol) {
-          if (i == 0 && j == 0) {
-            if (board.getCellState(1, 0) == symbol
-                && board.getCellState(2, 0) == CellState.EMPTY) {
-
-              return new Move(2, 0);
-            } else if (board.getCellState(1, 0) == CellState.EMPTY
-                && board.getCellState(2, 0) == symbol) {
-
-              return new Move(1, 0);
-            } else if (board.getCellState(1, 1) == CellState.EMPTY
-                && board.getCellState(2, 2) == symbol) {
-
-              return new Move(1, 1);
-            } else if (board.getCellState(1, 1) == symbol
-                && board.getCellState(2, 2) == CellState.EMPTY) {
-
-              return new Move(2, 2);
-            } else if (board.getCellState(0, 1) == symbol
-                && board.getCellState(0, 2) == CellState.EMPTY) {
-
-              return new Move(0, 2);
-            } else if (board.getCellState(0, 1) == CellState.EMPTY
-                && board.getCellState(0, 2) == symbol) {
-
-              return new Move(0, 1);
-            }
-          } else if (i == 0 && j == 1) {
-            if (board.getCellState(0, 2) == symbol
-                && board.getCellState(0, 0) == CellState.EMPTY) {
-              return new Move(0, 0);
-            } else if (board.getCellState(1, 1) == symbol
-                && board.getCellState(2, 1) == CellState.EMPTY) {
-
-              return new Move(2, 1);
-            } else if (board.getCellState(1, 1) == CellState.EMPTY
-                && board.getCellState(2, 1) == symbol) {
-
-              return new Move(1, 1);
-            }
-          } else if (i == 0 && j == 2) {
-            if (board.getCellState(1, 1) == symbol
-                && board.getCellState(2, 0) == CellState.EMPTY) {
-
-              return new Move(2, 0);
-            } else if (board.getCellState(1, 1) == CellState.EMPTY
-                && board.getCellState(2, 0) == symbol) {
-
-              return new Move(1, 1);
-            } else if (board.getCellState(1, 2) == CellState.EMPTY
-                && board.getCellState(2, 2) == symbol) {
-
-              return new Move(1, 2);
-            } else if (board.getCellState(1, 2) == symbol
-                && board.getCellState(2, 2) == CellState.EMPTY) {
-
-              return new Move(2, 3);
-            }
-          } else if (i == 1 && j == 0) {
-            if (board.getCellState(2, 0) == symbol
-                && board.getCellState(0, 0) == CellState.EMPTY) {
-
-              return new Move(0, 0);
-            } else if (board.getCellState(1, 1) == symbol
-                && board.getCellState(1, 2) == CellState.EMPTY) {
-
-              return new Move(1, 2);
-            } else if (board.getCellState(1, 1) == CellState.EMPTY
-                && board.getCellState(1, 2) == symbol) {
-
-              return new Move(1, 1);
-            }
-          } else if (i == 1 && j == 1) {
-            if (board.getCellState(2, 0) == symbol
-                && board.getCellState(0, 2) == CellState.EMPTY) {
-
-              return new Move(0, 2);
-            } else if (board.getCellState(2, 1) == symbol
-
-                && board.getCellState(0, 1) == CellState.EMPTY) {
-
-              return new Move(0, 1);
-            } else if (board.getCellState(2, 2) == symbol
-                && board.getCellState(0, 0) == CellState.EMPTY) {
-
-              return new Move(0, 0);
-            } else if (board.getCellState(1, 2) == symbol
-                && board.getCellState(1, 0) == CellState.EMPTY) {
-
-              return new Move(1, 0);
-            }
-          } else if (i == 1 && j == 2) {
-            if (board.getCellState(2, 2) == symbol
-                && board.getCellState(0, 2) == CellState.EMPTY) {
-
-              return new Move(0, 2);
-            }
-          } else if (i == 2 && j == 0) {
-            if (board.getCellState(2, 1) == symbol
-                && board.getCellState(2, 2) == CellState.EMPTY) {
-
-              return new Move(2, 2);
-            } else if (board.getCellState(2, 1) == CellState.EMPTY
-                && board.getCellState(2, 2) == symbol) {
-
-              return new Move(2, 1);
-            }
-          } else if (i == 2 && j == 1)
-            if (board.getCellState(2, 2) == symbol
-                && board.getCellState(2, 0) == CellState.EMPTY) {
-
-              return new Move(2, 0);
-            }
+          Move move = tryToCompleteLineByCoordinate(symbol, i, j);
+          if (move != null) {
+            return move;
+          }
         }
+      }
+    return null;
+  }
+
+  private boolean isEmptyCell(int row, int column) {
+    return board.getCellState(row, column) == CellState.EMPTY;
+  }
+
+  private Move tryToCompleteLineByCoordinate(CellState symbol, int i, int j) {
+    if (i == 0 && j == 0) {
+      if (board.getCellState(1, 0) == symbol
+          && isEmptyCell(2, 0)) {
+
+        return new Move(2, 0);
+      } else if (isEmptyCell(1, 0)
+          && board.getCellState(2, 0) == symbol) {
+
+        return new Move(1, 0);
+      } else if (isEmptyCell(1, 1)
+          && board.getCellState(2, 2) == symbol) {
+
+        return new Move(1, 1);
+      } else if (board.getCellState(1, 1) == symbol
+          && isEmptyCell(2, 2)) {
+
+        return new Move(2, 2);
+      } else if (board.getCellState(0, 1) == symbol
+          && isEmptyCell(0, 2)) {
+
+        return new Move(0, 2);
+      } else if (isEmptyCell(0, 1)
+          && board.getCellState(0, 2) == symbol) {
+
+        return new Move(0, 1);
+      }
+    } else if (i == 0 && j == 1) {
+      if (board.getCellState(0, 2) == symbol
+          && isEmptyCell(0, 0)) {
+        return new Move(0, 0);
+      } else if (board.getCellState(1, 1) == symbol
+          && isEmptyCell(2, 1)) {
+
+        return new Move(2, 1);
+      } else if (isEmptyCell(1, 1)
+          && board.getCellState(2, 1) == symbol) {
+
+        return new Move(1, 1);
+      }
+    } else if (i == 0 && j == 2) {
+      if (board.getCellState(1, 1) == symbol
+          && isEmptyCell(2, 0)) {
+
+        return new Move(2, 0);
+      } else if (isEmptyCell(1, 1)
+          && board.getCellState(2, 0) == symbol) {
+
+        return new Move(1, 1);
+      } else if (isEmptyCell(1, 2)
+          && board.getCellState(2, 2) == symbol) {
+
+        return new Move(1, 2);
+      } else if (board.getCellState(1, 2) == symbol
+          && isEmptyCell(2, 2)) {
+
+        return new Move(2, 3);
+      }
+    } else if (i == 1 && j == 0) {
+      if (board.getCellState(2, 0) == symbol
+          && isEmptyCell(0, 0)) {
+
+        return new Move(0, 0);
+      } else if (board.getCellState(1, 1) == symbol
+          && isEmptyCell(1, 2)) {
+
+        return new Move(1, 2);
+      } else if (isEmptyCell(1, 1)
+          && board.getCellState(1, 2) == symbol) {
+
+        return new Move(1, 1);
+      }
+    } else if (i == 1 && j == 1) {
+      if (board.getCellState(2, 0) == symbol
+          && isEmptyCell(0, 2)) {
+
+        return new Move(0, 2);
+      } else if (board.getCellState(2, 1) == symbol
+
+          && isEmptyCell(0, 1)) {
+
+        return new Move(0, 1);
+      } else if (board.getCellState(2, 2) == symbol
+          && isEmptyCell(0, 0)) {
+
+        return new Move(0, 0);
+      } else if (board.getCellState(1, 2) == symbol
+          && isEmptyCell(1, 0)) {
+
+        return new Move(1, 0);
+      }
+    } else if (i == 1 && j == 2) {
+      if (board.getCellState(2, 2) == symbol
+          && isEmptyCell(0, 2)) {
+
+        return new Move(0, 2);
+      }
+    } else if (i == 2 && j == 0) {
+      if (board.getCellState(2, 1) == symbol
+          && isEmptyCell(2, 2)) {
+
+        return new Move(2, 2);
+      } else if (isEmptyCell(2, 1)
+          && board.getCellState(2, 2) == symbol) {
+
+        return new Move(2, 1);
+      }
+    } else if (i == 2 && j == 1)
+      if (board.getCellState(2, 2) == symbol
+          && isEmptyCell(2, 0)) {
+
+        return new Move(2, 0);
       }
     return null;
   }

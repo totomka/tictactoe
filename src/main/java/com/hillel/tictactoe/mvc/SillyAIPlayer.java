@@ -4,8 +4,8 @@ import java.util.Random;
 
 public class SillyAIPlayer extends AIPlayer {
 
-  public SillyAIPlayer(Board board) {
-    super(board);
+  public SillyAIPlayer(Board board, AIRandom random) {
+    super(board, random);
   }
 
   @Override

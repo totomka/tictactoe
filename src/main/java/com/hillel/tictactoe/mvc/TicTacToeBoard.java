@@ -4,7 +4,6 @@ public class TicTacToeBoard implements Board {
   private CellState[][] board;
   private int rows = 3;
   private int columns = 3;
-  private boolean isFull=false;
 
   public TicTacToeBoard() {
     board = new CellState[rows][columns];
@@ -20,7 +19,7 @@ public class TicTacToeBoard implements Board {
   }
 
   public boolean isFull() {
-    return isFull;
+    return !containsEmptyCells();
   }
 
   public void reset() {
@@ -29,28 +28,31 @@ public class TicTacToeBoard implements Board {
         board[i][j] = CellState.EMPTY;
       }
     }
-    isFull=false;
-  }
-
-  public CellState getCellState(int row, int column) {
-    return board[row][column];
   }
 
   public boolean isEndGame(CellState playerSymbol) {
     int i, j;
-    if (checkHorizontalLines(playerSymbol)){
+    if (checkHorizontalLines(playerSymbol)) {
       return true;
     }
-
-    if (checkVerticalLines(playerSymbol)){
+    if (checkVerticalLines(playerSymbol)) {
       return true;
     }
-
     if (checkDiagonals(playerSymbol)) {
       return true;
     }
-
     return !containsEmptyCells();
+  }
+
+  private boolean containsEmptyCells() {
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < columns; j++) {
+        if (board[i][j] == CellState.EMPTY) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private boolean checkDiagonals(CellState playerSymbol) {
@@ -82,16 +84,8 @@ public class TicTacToeBoard implements Board {
     return false;
   }
 
-  public boolean containsEmptyCells() {
-    for (int i = 0; i < rows; i++) {
-      for (int j = 0; j < columns; j++) {
-        if (board[i][j] == CellState.EMPTY) {
-          return true;
-        }
-      }
-    }
-    isFull=true;
-    return false;
+  public CellState getCellState(int row, int column) {
+    return board[row][column];
   }
 
   public void markCell(int row, int column, CellState state) {
